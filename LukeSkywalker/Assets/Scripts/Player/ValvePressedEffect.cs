@@ -4,35 +4,68 @@ using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
 public class ValvePressedEffect : MonoBehaviour {
+  [Header("Color Settings")]
   [SerializeField]
-  private Sprite _pressedSprite;
+  private Color _defaultColor = Color.green;
   [SerializeField]
-  private Sprite _defaultSprite;
+  private Color _pressedColor = Color.red;
+  [SerializeField]
+  private float _colorTransitionSpeed = 3f;
 
+  [Header("References")]
+  [SerializeField]
   private Valve _valve;
+
   private Image _image;
+  private Coroutine _colorTransitionCoroutine;
 
-  private void Start() {
-    _valve = GetComponent<Valve>();
+  private void Awake() {
     _image = GetComponent<Image>();
-    _valve.OnValvePressed += ApplyEffect;
+    if (_valve == null)
+      _valve = GetComponent<Valve>();
+
+    _image.color = _defaultColor;  // Устанавливаем начальный цвет
   }
 
-  public void ApplyEffect(Valve valve) {
-    if (valve != _valve)
-      return;
-
-    _image.sprite = _pressedSprite;
-    StartCoroutine(DisableEffect());
-  }
-
-  private IEnumerator DisableEffect() {
-    yield return new WaitForSeconds(0.6f);
-    _image.sprite = _defaultSprite;
-  }
-
-  private void OnDestroy() {
+  private void OnEnable() {
     if (_valve != null)
-      _valve.OnValvePressed -= ApplyEffect;
+      _valve.OnValvePressed += HandleValvePressed;
+  }
+
+  private void OnDisable() {
+    if (_valve != null)
+      _valve.OnValvePressed -= HandleValvePressed;
+  }
+
+  private void HandleValvePressed(Valve valve) {
+    if (_colorTransitionCoroutine != null)
+      StopCoroutine(_colorTransitionCoroutine);
+
+    _colorTransitionCoroutine = StartCoroutine(TransitionColor());
+  }
+
+  private IEnumerator TransitionColor() {
+    // Переход к красному цвету
+    float t = 0f;
+    while (t < 1f) {
+      _image.color = Color.Lerp(_defaultColor, _pressedColor, t);
+      t += Time.deltaTime * _colorTransitionSpeed;
+      yield return null;
+    }
+
+    // Возврат к зеленому цвету
+    t = 0f;
+    while (t < 1f) {
+      _image.color = Color.Lerp(_pressedColor, _defaultColor, t);
+      t += Time.deltaTime * _colorTransitionSpeed;
+      yield return null;
+    }
+
+    _image.color = _defaultColor;
+  }
+
+  // Для внешнего вызова (например из ValveHint)
+  public void ApplyEffect(Valve valve) {
+    HandleValvePressed(valve);
   }
 }
