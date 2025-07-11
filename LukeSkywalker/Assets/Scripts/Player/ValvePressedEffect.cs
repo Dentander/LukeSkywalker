@@ -12,12 +12,12 @@ public class ValvePressedEffect : MonoBehaviour {
         _valve = GetComponent<Valve>();
     }
 
-    private void ApplyEffect() {
+    public void ApplyEffect() {
         _renderer.color = Color.black;
         StartCoroutine(DisableEffect());
     }
 
-    IEnumerator DisableEffect() {
+    private IEnumerator DisableEffect() {
         yield return new WaitForSeconds(0.6f);
         _renderer.color = Color.white;
     }

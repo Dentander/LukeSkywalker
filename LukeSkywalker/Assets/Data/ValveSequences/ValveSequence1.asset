@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6cecb20884e7b84e8c4f2d3a1245de1, type: 3}
   m_Name: ValveSequence1
   m_EditorClassIdentifier: 
+  ValveSequence: 000000000200000002000000010000000000000003000000

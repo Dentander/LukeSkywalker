@@ -8,7 +8,7 @@ public class Luke : MonoBehaviour {
     public event Action OnWin;
     public event Action OnValidValvePressed;
     public event Action OnInvalidValvePressed;
-    public int PassedValves { get; private set; } = 0;
+    public int PassedValves { get; private set; } = 1;
     public int NextValve { get; private set; } = 0;
 
     public Valve GetValveByType(ValveType type) {
@@ -28,6 +28,11 @@ public class Luke : MonoBehaviour {
             OnInvalidValvePressed?.Invoke();
         }
         if (NextValve == _soValvesSequence.ValveSequence.Length) { OnWin?.Invoke(); }
+        else if (NextValve == PassedValves) {
+            NextValve = 0;
+            ++PassedValves;
+            GetComponent<ValveHint>().Begin();
+        }
     }
 
     private void OnEnable() {

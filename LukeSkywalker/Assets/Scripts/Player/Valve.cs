@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 public class Valve : TouchButton {
-    [SerializeField] public ValveType Type { get; private set; }
+    [field: SerializeField] public ValveType Type { get; private set; }
 
     public event Action<Valve> OnValvePressed;
 
