@@ -5,22 +5,28 @@ public class ValveHint : MonoBehaviour {
   [SerializeField]
   private SO_ValveSequence _soValvesSequence;
   private Luke _luke;
+  private Coroutine _hintCoroutine;
 
-  private void Start() {
+  private void Awake() {
     _luke = GetComponent<Luke>();
-    Begin();
   }
 
   public void Begin() {
-    StartCoroutine(IBegin());
+    if (_hintCoroutine != null)
+      StopCoroutine(_hintCoroutine);
+
+    _hintCoroutine = StartCoroutine(ShowHints());
   }
 
-  public IEnumerator IBegin() {
+  private IEnumerator ShowHints() {
     yield return new WaitForSeconds(1f);
-    for (int i = 0; i < _luke.PassedValves; ++i) {
+
+    for (int i = 0; i < _luke.CurrentLevel; i++) {
       Valve valve = _luke.GetValveByType(_soValvesSequence.ValveSequence[i]);
-      valve.GetComponent<ValvePressedEffect>().ApplyEffect(valve);
-      yield return new WaitForSeconds(1f);
+      if (valve != null) {
+        valve.GetComponent<ValvePressedEffect>()?.ApplyEffect(valve);
+        yield return new WaitForSeconds(1f);
+      }
     }
   }
 }
