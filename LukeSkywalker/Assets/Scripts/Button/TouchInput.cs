@@ -1,26 +1,26 @@
 using UnityEngine;
 
 public class TouchInput : MonoBehaviour {
-    [SerializeField] private KeyCode _key = KeyCode.Space;
+  [SerializeField]
+  private KeyCode _interactionKey = KeyCode.Space;
+  private Camera _mainCamera;
 
-    private Camera _camera;
+  public bool IsActive => Input.touchCount > 0 ||
+                          Input.GetKey(_interactionKey) || Input.GetMouseButton(0);
 
-    private void Start() {
-        _camera = FindObjectOfType<Camera>();
+  public Vector2 TouchPosInGame {
+    get {
+      if (!IsActive)
+        return Vector2.zero;
+
+      Vector3 screenPos = Input.touchCount > 0?(Vector3)Input.GetTouch(0).position
+          : Input.mousePosition;
+
+      return _mainCamera.ScreenToWorldPoint(screenPos);
     }
+  }
 
-    public bool IsActive => Input.touchCount > 0 || Input.GetKey(_key);
-
-    public Vector3 TouchPosInGame {
-        get {
-            if (!IsActive) { return Vector3.zero; }
-
-            Vector3 posOnScreen = (Input.touchCount > 0) ? 
-                                      Input.GetTouch(0).position : 
-                                      Input.mousePosition;
-
-            Vector2 res = _camera.ScreenToWorldPoint(posOnScreen);
-            return new Vector3(res.x, res.y, 0);
-        }
-    }
+  private void Start() {
+    _mainCamera = Camera.main;
+  }
 }

@@ -1,14 +1,26 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Valve : TouchButton {
-    [field: SerializeField] public ValveType Type { get; private set; }
+[RequireComponent(typeof(Button))]
+public class Valve : MonoBehaviour {
+  [field:SerializeField]
+  public ValveType Type { get; private set; }
+  public event Action<Valve> OnValvePressed;
 
-    public event Action<Valve> OnValvePressed;
+  private Button _button;
 
-    private void Invoke() => OnValvePressed?.Invoke(this);
+  private void Awake() {
+    _button = GetComponent<Button>();
+    _button.onClick.AddListener(OnButtonClick);
+  }
 
-    private void OnEnable() => OnPress += Invoke;
+  private void OnButtonClick() {
+    OnValvePressed?.Invoke(this);
+  }
 
-    private void OnDisable() => OnPress -= Invoke;
+  private void OnDestroy() {
+    if (_button != null)
+      _button.onClick.RemoveListener(OnButtonClick);
+  }
 }
