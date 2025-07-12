@@ -69,15 +69,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u041F\u043E\u0432\u0442\u043E\u0440\u044F\u0439!"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 725ab10354a32584ea76dd266f0f738b, type: 2}
+  m_sharedMaterial: {fileID: 5739430948467296311, guid: 725ab10354a32584ea76dd266f0f738b, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278387711
-  m_fontColor: {r: 1, g: 0.013207495, b: 0.013207495, a: 1}
+  m_fontColor: {r: 0.8666667, g: 0.4745098, b: 0.22352941, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -148,11 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a19b01d10ca99bc40b9d974248e3412f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _messageText: {fileID: 520168233209527449}
-  _canvasGroup: {fileID: 5622885911351606301}
-  _pulseIntensity: 0.1
-  _pulseSpeed: 20
-  _pulseCount: 2
+  _textColor: {r: 0.863, g: 0.475, b: 0.224, a: 1}
+  _buttonColor: {r: 0.2, g: 0.7, b: 0.2, a: 1}
+  _buttonOKBackground: {fileID: 21300000, guid: 9c3bb94db2ed68642b36c40b5a1638af, type: 3}
+  _fontSize: 150
+  _fadeInDuration: 0.5
+  _textPadding: 40
+  messagePrefab: {fileID: 0}
 --- !u!225 &5622885911351606301
 CanvasGroup:
   m_ObjectHideFlags: 0

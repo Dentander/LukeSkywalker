@@ -8,6 +8,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class Luke : MonoBehaviour {
   [Header("Настройки игры")]
@@ -22,9 +23,14 @@ public class Luke : MonoBehaviour {
   [SerializeField]
   private GameMessage _gameMessage;
   [SerializeField]
+  private GameMessage _gameMessagePrefab;
+  private GameMessage _gameMessageInstance;
+  [SerializeField]
   private TMP_FontAsset _fontMessage;
   [SerializeField]
   private Sprite _backgroundMessage;
+  [SerializeField]
+  private Sprite _backgroundMessageOKButton;
 
   public event Action OnSequenceCompleted;
   public event Action<int> OnLevelIncreased;
@@ -53,7 +59,8 @@ public class Luke : MonoBehaviour {
     }
 
     _gameMessage.gameObject.SetActive(true);
-    _gameMessage.ShowMessage("Повторяй!");
+    _gameMessage.ShowMessage(
+        "Выровняй давление внутри капсулы, чтобы открыть ее. Запоминай и повторяй");
 
     yield return new WaitForSeconds(_gameMessage.TotalAnimationDuration);
     GetComponent<ValveHint>()?.Begin();
@@ -75,19 +82,59 @@ public class Luke : MonoBehaviour {
 
     GameMessage gameMessage = messageGO.AddComponent<GameMessage>();
     RectTransform rt = messageGO.GetComponent<RectTransform>();
-    rt.anchoredPosition = Vector2.zero;
-    rt.sizeDelta = new Vector2(800, 500);
+    rt.anchorMin = new Vector2(0.2f, 0.3f);
+    rt.anchorMax = new Vector2(0.8f, 0.7f);
+    rt.offsetMin = Vector2.zero;
+    rt.offsetMax = Vector2.zero;
 
-    //// Поиск ресурсов с выводом всех возможных вариантов
-    // Debug.Log("Поиск ресурсов в проекте:");
-    // FindAllResources();
+    // Настройка fallback шрифтов
+    if (_fontMessage != null) {
+      // Создаем новый список fallback шрифтов
+      List<TMP_FontAsset> fallbacks = new List<TMP_FontAsset>();
 
-    // TMP_FontAsset font = FindResource<TMP_FontAsset>("Stengazeta-Regular_5");
-    // Sprite background = FindResource<Sprite>("white-paper-texture-background");
+      // Добавляем стандартный шрифт
+      TMP_FontAsset defaultFont =
+          Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+      if (defaultFont != null) {
+        fallbacks.Add(defaultFont);
+      }
+
+      // Применяем fallback шрифты
+      _fontMessage.fallbackFontAssetTable = fallbacks;
+    }
 
     gameMessage.SetupMessage(_fontMessage, _backgroundMessage);
     return gameMessage;
   }
+  // private GameMessage CreateGameMessage() {
+  //   Canvas canvas = FindObjectOfType<Canvas>();
+  //   if (canvas == null) {
+  //     GameObject canvasGO = new GameObject("Canvas сообщений");
+  //     canvas = canvasGO.AddComponent<Canvas>();
+  //     canvasGO.AddComponent<CanvasScaler>();
+  //     canvasGO.AddComponent<GraphicRaycaster>();
+  //     canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+  //     canvas.sortingOrder = 999;
+  //   }
+
+  //  GameObject messageGO = new GameObject("GameMessage");
+  //  messageGO.transform.SetParent(canvas.transform, false);
+
+  //  GameMessage gameMessage = messageGO.AddComponent<GameMessage>();
+  //  RectTransform rt = messageGO.GetComponent<RectTransform>();
+  //  rt.anchoredPosition = Vector2.zero;
+  //  rt.sizeDelta = new Vector2(800, 500);
+
+  //  //// Поиск ресурсов с выводом всех возможных вариантов
+  //  // Debug.Log("Поиск ресурсов в проекте:");
+  //  // FindAllResources();
+
+  //  // TMP_FontAsset font = FindResource<TMP_FontAsset>("Stengazeta-Regular_5");
+  //  // Sprite background = FindResource<Sprite>("white-paper-texture-background");
+
+  //  gameMessage.SetupMessage(_fontMessage, _backgroundMessage);  //, _backgroundMessageOKButton);
+  //  return gameMessage;
+  //}
 
   private void FindAllResources() {
 #if UNITY_EDITOR
@@ -236,7 +283,7 @@ public class Luke : MonoBehaviour {
       OnSequenceFailed?.Invoke();
 
       _gameMessage.gameObject.SetActive(true);
-      _gameMessage.ShowMessage("Допущена ошибка");
+      _gameMessage.ShowMessage("Попробуй заново. Неверный клапан.");
 
       GetComponent<ValveHint>()?.Begin();
     }
@@ -265,7 +312,8 @@ public class Luke : MonoBehaviour {
 
   private IEnumerator CompleteGameRoutine() {
     _gameMessage.gameObject.SetActive(true);
-    _gameMessage.ShowMessage("У тебя получилось!");
+    _gameMessage.ShowMessage(
+        "Отличная работа! Теперь можно открыть люк и помочь космонавтам выбраться!");
 
     while (_gameMessage.gameObject.activeSelf) {
       yield return null;

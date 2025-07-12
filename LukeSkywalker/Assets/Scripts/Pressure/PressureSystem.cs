@@ -61,8 +61,9 @@ public class PressureSystem : MonoBehaviour {
     float totalLevels = _luke.TotalLevels;
     float progress = (float)newLevel / totalLevels;
 
-    _targetLeftValue = progress;
-    _targetRightValue = 1f - progress;
+    // »зменено: левый слайдер идет от 0 до 0.5, правый от 1 до 0.5
+    _targetLeftValue = progress * 0.5f;
+    _targetRightValue = 1f - progress * 0.5f;
   }
 
   private void ResetPressure() {
@@ -71,7 +72,8 @@ public class PressureSystem : MonoBehaviour {
   }
 
   private void CompletePressure() {
-    _targetLeftValue = 1f;
-    _targetRightValue = 0f;
+    // »зменено: конечные значени€ теперь 0.5 дл€ обоих слайдеров
+    _targetLeftValue = 0.5f;
+    _targetRightValue = 0.5f;
   }
 }

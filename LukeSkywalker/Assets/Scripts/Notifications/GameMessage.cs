@@ -1,7 +1,8 @@
-using UnityEngine;
-using TMPro;
-using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(TextMeshProUGUI))]
 [RequireComponent(typeof(CanvasGroup))]
@@ -13,9 +14,16 @@ public class GameMessage : MonoBehaviour {
   [SerializeField]
   private Color _buttonColor = new Color(0.2f, 0.7f, 0.2f);
   [SerializeField]
-  private int _fontSize = 350;
+  private Sprite _buttonOKBackground;
+  [SerializeField]
+  private int _fontSize = 150;
   [SerializeField]
   private float _fadeInDuration = 0.5f;
+  [SerializeField]
+  private float _textPadding = 40f;  // Увеличенные отступы
+
+  [SerializeField]
+  GameObject messagePrefab;
 
   private TextMeshProUGUI _messageText;
   private CanvasGroup _canvasGroup;
@@ -47,15 +55,31 @@ public class GameMessage : MonoBehaviour {
     _messageText.fontSize = _fontSize;
     _messageText.alignment = TextAlignmentOptions.Center;
     _messageText.fontStyle = FontStyles.Bold;
+    _messageText.enableWordWrapping = true;
+    _messageText.overflowMode = TextOverflowModes.Ellipsis;
+    _messageText.margin = new Vector4(_textPadding, _textPadding, _textPadding, _textPadding);
 
     if (customFont != null) {
       _messageText.font = customFont;
+
+      // Добавляем fallback для специальных символов
+      if (_messageText.font.fallbackFontAssetTable == null ||
+          _messageText.font.fallbackFontAssetTable.Count == 0) {
+        TMP_FontAsset fallbackFont =
+            Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (fallbackFont != null) {
+          _messageText.font.fallbackFontAssetTable = new List<TMP_FontAsset> { fallbackFont };
+        }
+      }
+
+      // Принудительно обновляем символы
+      _messageText.ForceMeshUpdate();
     }
 
-    // Настройка RectTransform
+    // Уменьшенные размеры окна (было 0.1-0.9 по X и 0.2-0.8 по Y)
     RectTransform rt = GetComponent<RectTransform>();
-    rt.anchorMin = new Vector2(0.1f, 0.2f);
-    rt.anchorMax = new Vector2(0.9f, 0.8f);
+    rt.anchorMin = new Vector2(0.15f, 0.25f);  // Уменьшил ширину и высоту
+    rt.anchorMax = new Vector2(0.85f, 0.75f);
     rt.offsetMin = Vector2.zero;
     rt.offsetMax = Vector2.zero;
 
@@ -66,42 +90,35 @@ public class GameMessage : MonoBehaviour {
     if (_okButton != null)
       return;
 
-    // Создаем кнопку
     _okButton = new GameObject("OK Button");
     _okButton.transform.SetParent(transform, false);
 
-    // Настройка RectTransform (приподнята + уже)
     RectTransform buttonRt = _okButton.AddComponent<RectTransform>();
-    buttonRt.anchorMin = new Vector2(0.4f, 0.1f);  // Выше чем было (0.05 -> 0.1)
-    buttonRt.anchorMax = new Vector2(0.6f, 0.2f);  // Уже (40% -> 20% ширины)
+    buttonRt.anchorMin = new Vector2(0.4f, 0.1f);
+    buttonRt.anchorMax = new Vector2(0.6f, 0.2f);
     buttonRt.offsetMin = Vector2.zero;
     buttonRt.offsetMax = Vector2.zero;
 
-    // Создаем спрайт с закругленными углами
     Image buttonImage = _okButton.AddComponent<Image>();
     buttonImage.color = _buttonColor;
 
-    // Простейший способ скругления - через текстуру
     Texture2D roundedTexture = CreateRoundedTexture(200, 100, 20, _buttonColor);
     buttonImage.sprite =
         Sprite.Create(roundedTexture, new Rect(0, 0, 200, 100), Vector2.one * 0.5f);
 
-    // Настройка кнопки (исправленный вариант)
     _buttonComponent = _okButton.AddComponent<Button>();
-    _buttonComponent.onClick.AddListener(() => HideMessage());  // Фикс: явный вызов
+    _buttonComponent.onClick.AddListener(() => HideMessage());
 
-    // Текст кнопки
     GameObject textObj = new GameObject("Text");
     textObj.transform.SetParent(_okButton.transform, false);
 
     TextMeshProUGUI buttonText = textObj.AddComponent<TextMeshProUGUI>();
     buttonText.text = "OK";
     buttonText.color = Color.white;
-    buttonText.fontSize = 42;  // Оптимальный размер
+    buttonText.fontSize = 42;
     buttonText.alignment = TextAlignmentOptions.Center;
     buttonText.fontStyle = FontStyles.Bold;
 
-    // Растягиваем текст
     RectTransform textRt = textObj.GetComponent<RectTransform>();
     textRt.anchorMin = Vector2.zero;
     textRt.anchorMax = Vector2.one;
@@ -109,20 +126,17 @@ public class GameMessage : MonoBehaviour {
     textRt.offsetMax = Vector2.zero;
   }
 
-  // Создает текстуру с закругленными углами
   private Texture2D CreateRoundedTexture(int width, int height, int radius, Color color) {
     Texture2D texture = new Texture2D(width, height);
     Color transparent = new Color(0, 0, 0, 0);
 
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        bool isCorner = (x < radius && y < radius) ||                         // Левый нижний
-                        (x < radius && y > height - radius - 1) ||            // Левый верхний
-                        (x > width - radius - 1 && y < radius) ||             // Правый нижний
-                        (x > width - radius - 1 && y > height - radius - 1);  // Правый верхний
+        bool isCorner = (x < radius && y < radius) || (x < radius && y > height - radius - 1) ||
+                        (x > width - radius - 1 && y < radius) ||
+                        (x > width - radius - 1 && y > height - radius - 1);
 
         if (isCorner) {
-          // Проверяем попадание в окружность угла
           int dx = Mathf.Min(x, width - x - 1);
           int dy = Mathf.Min(y, height - y - 1);
           if (Mathf.Sqrt(dx * dx + dy * dy) > radius)
@@ -144,6 +158,10 @@ public class GameMessage : MonoBehaviour {
       return;
 
     _messageText.text = message;
+
+    // Принудительное обновление текста
+    _messageText.ForceMeshUpdate();
+
     gameObject.SetActive(true);
     IsShowing = true;
     StartCoroutine(FadeIn());
@@ -151,7 +169,7 @@ public class GameMessage : MonoBehaviour {
 
   private IEnumerator FadeIn() {
     _canvasGroup.alpha = 0f;
-    Time.timeScale = 0f;  // Пауза игры
+    Time.timeScale = 0f;
 
     float timer = 0f;
     while (timer < _fadeInDuration) {
@@ -164,7 +182,7 @@ public class GameMessage : MonoBehaviour {
   }
 
   public void HideMessage() {
-    Time.timeScale = 1f;  // Возобновить игру
+    Time.timeScale = 1f;
     IsShowing = false;
     gameObject.SetActive(false);
   }
