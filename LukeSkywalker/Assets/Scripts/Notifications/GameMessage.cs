@@ -9,7 +9,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Image))]
 public class GameMessage : MonoBehaviour {
   [Header("Настройки дизайна")]
-  [SerializeField]
+  //[SerializeField]
   private Color _textColor = new Color(0.863f, 0.475f, 0.224f);  // dd7939
   [SerializeField]
   private Color _buttonColor = new Color(0.2f, 0.7f, 0.2f);
@@ -25,6 +25,9 @@ public class GameMessage : MonoBehaviour {
   [SerializeField]
   GameObject messagePrefab;
 
+  [SerializeField]
+  private float _fadeOutDuration = 0.5f;
+
   private TextMeshProUGUI _messageText;
   private CanvasGroup _canvasGroup;
   private Image _background;
@@ -35,15 +38,57 @@ public class GameMessage : MonoBehaviour {
   public bool IsShowing { get; private set; }
 
   private void Awake() {
-    _messageText = GetComponent<TextMeshProUGUI>();
+    //_messageText = GetComponent<TextMeshProUGUI>();
+    _messageText = transform.Find("Text").GetComponent<TextMeshProUGUI>();
+    if (_messageText == null) {
+      Debug.LogError("TextMeshProUGUI not found as child of GameMessage!");
+      return;
+    }
+
     _canvasGroup = GetComponent<CanvasGroup>();
+    if (_canvasGroup == null) {
+      Debug.LogError("CanvasGroup not found as child of GameMessage!");
+      return;
+    }
+
     _background = GetComponent<Image>();
+    if (_background == null) {
+      Debug.LogError("Background Image not found as child of GameMessage!");
+      return;
+    }
+
+    _okButton = transform.Find("OK Button")?.gameObject;
+    if (_okButton == null) {
+      Debug.LogError("OK Button not found as child of GameMessage!");
+      return;
+    }
+
+    _buttonComponent = _okButton.GetComponent<Button>();
+    if (_buttonComponent == null) {
+      Debug.LogError("Button component not found on OK Button!");
+      return;
+    }
+    if (_buttonComponent != null) {
+      _buttonComponent.onClick.RemoveAllListeners();  // Очищаем старые слушатели
+      _buttonComponent.onClick.AddListener(HideMessage);
+    }
 
     _canvasGroup.alpha = 0f;
     gameObject.SetActive(false);
   }
 
   public void SetupMessage(TMP_FontAsset customFont, Sprite backgroundSprite) {
+    if (customFont == null) {
+      Debug.LogWarning("Font is missing, skipping SetupMessage.");
+    } else if (backgroundSprite == null) {
+      Debug.LogWarning("Background sprite is missing, skipping SetupMessage.");
+    } else {
+      Debug.LogWarning("What?");
+    }
+
+    if (_background == null) {
+      Debug.LogWarning("Background image is missing, skipping SetupMessage.");
+    }
     // Настройка фона
     _background.sprite = backgroundSprite;
     _background.type = Image.Type.Sliced;
@@ -181,9 +226,29 @@ public class GameMessage : MonoBehaviour {
     _canvasGroup.alpha = 1f;
   }
 
+  // public void HideMessage() {
+  //   Time.timeScale = 1f;
+  //   IsShowing = false;
+  //   gameObject.SetActive(false);
+  // }
   public void HideMessage() {
-    Time.timeScale = 1f;
+    // Вместо немедленного скрытия запускаем корутину исчезновения
+    StartCoroutine(FadeOut());
+  }
+
+  private IEnumerator FadeOut() {
+    float timer = 0f;
+    float startAlpha = _canvasGroup.alpha;
+
+    while (timer < _fadeOutDuration) {
+      _canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, timer / _fadeOutDuration);
+      timer += Time.unscaledDeltaTime;
+      yield return null;
+    }
+
+    _canvasGroup.alpha = 0f;
     IsShowing = false;
+    Time.timeScale = 1f;  // Возвращаем нормальную скорость игры
     gameObject.SetActive(false);
   }
 }
